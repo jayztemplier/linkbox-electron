@@ -1,0 +1,22 @@
+body {
+  background-color: #88C2E0;
+}
+
+.comment {
+  background-color: rgb(240, 240, 240);
+  border-bottom: 1px rgb(215, 215, 215) solid;
+  padding: 0px 10px;
+  height: 70px;
+  cursor: pointer;
+}
+.comment:hover {
+  background-color: rgb(247, 247, 247);
+}
+
+.title {
+  text-align: center;
+}
+
+#search {
+  margin-bottom: 15px;
+}
