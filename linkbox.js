@@ -3,7 +3,7 @@ var shell = require('shell');
 
 var CommentBox = React.createClass({
   getInitialState: function() {
-    return {data: []};
+    return {data: [], apiKey: localStorage.getItem('apiKey')};
   },
   loadCommentsFromServer: function() {
     if (this.state.apiKey) {
@@ -35,6 +35,7 @@ var CommentBox = React.createClass({
       success: function(data) {
         console.log(data);
         this.setState({apiKey: data.api_key});
+        localStorage.setItem('apiKey', data.api_key);
         this.loadCommentsFromServer();
       }.bind(this),
       error: function(xhr, status, err) {
