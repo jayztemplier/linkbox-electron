@@ -6,34 +6,36 @@ var CommentBox = React.createClass({
     return {data: []};
   },
   loadCommentsFromServer: function() {
-    console.log(this.props.url);
-    $.ajax({
-      url: this.props.url,
-      dataType: 'json',
-      cache: false,
-      success: function(data) {
-        this.setState({data: data});
-      }.bind(this),
-      error: function(xhr, status, err) {
-        console.error(this.props.url, status, err.toString());
-      }.bind(this)
-    });
+    if (this.state.apiKey) {
+      $.ajax({
+        url: this.props.url,
+        dataType: 'json',
+        cache: false,
+        data: {api_key: this.state.apiKey},
+        success: function(data) {
+          this.setState({data: data});
+        }.bind(this),
+        error: function(xhr, status, err) {
+          alert(err.toString());
+          console.error(this.props.url, status, err.toString());
+        }.bind(this)
+      });
+    }
   },
   componentDidMount: function() {
     this.loadCommentsFromServer();
     setInterval(this.loadCommentsFromServer, this.props.pollInterval);
   },
-  handleCommentSubmit: function(comment) {
-    var comments = this.state.data;
-    var newComments = comments.concat([comment]);
-    this.setState({data: newComments});
+  handleAuthenticationSubmit: function(credentials) {
     $.ajax({
-      url: this.props.url,
+      url: 'http://linkboxapp.herokuapp.com/login.json',
       dataType: 'json',
       type: 'POST',
-      data: comment,
+      data: credentials,
       success: function(data) {
-        this.setState({data: data});
+        console.log(data);
+        this.setState({apiKey: data.api_key});
+        this.loadCommentsFromServer();
       }.bind(this),
       error: function(xhr, status, err) {
         console.error(this.props.url, status, err.toString());
@@ -41,14 +43,50 @@ var CommentBox = React.createClass({
     });
   },
   render: function() {
+    if (this.state.apiKey) {
+      return (
+        <div className="commentBox">
+        <CommentList data={this.state.data}/>
+        </div>
+      );
+    } else {
+      return (
+        <AuthenticationForm onAuthenticationSubmit={this.handleAuthenticationSubmit}/>
+      );
+    }
+  }
+});
+
+// Authentication
+var AuthenticationForm = React.createClass({
+  handleSubmit: function(e) {
+    e.preventDefault();
+    var email = React.findDOMNode(this.refs.email).value.trim();
+    var password = React.findDOMNode(this.refs.password).value.trim();
+    if (!email || !password) {
+      return;
+    }
+    this.props.onAuthenticationSubmit({email: email, password: password});
+    React.findDOMNode(this.refs.email).value = '';
+    React.findDOMNode(this.refs.password).value = '';
+    return;
+  },
+  render: function() {
     return (
-      <div className="commentBox">
-      <h1 className="title row">LinkBox</h1>
-      <CommentList data={this.state.data}/>
+      <div className="authentication">
+      <form className="form-horizontal" onSubmit={this.handleSubmit}>
+      <input className="form-control" type="text" placeholder="email" ref="email" />
+      <input className="form-control" type="password" placeholder="password" ref="password" />
+      <div class="col-sm-offset-2 col-sm-10">
+      <input type="submit" value="Post" className="btn btn-default" />
+      </div>
+      </form>
       </div>
     );
   }
 });
+
+// Comment
 var Comment = React.createClass({
   handleClick: function(event) {
     shell.openExternal(this.props.children.toString());
@@ -120,33 +158,12 @@ var CommentList = React.createClass({
     );
   }
 });
-var CommentForm = React.createClass({
-  handleSubmit: function(e) {
-    e.preventDefault();
-    var author = React.findDOMNode(this.refs.author).value.trim();
-    var text = React.findDOMNode(this.refs.text).value.trim();
-    if (!text || !author) {
-      return;
-    }
-    this.props.onCommentSubmit({author: author, text: text});
-    React.findDOMNode(this.refs.author).value = '';
-    React.findDOMNode(this.refs.text).value = '';
-    return;
-  },
-  render: function() {
-    return (
-      <form className="commentForm" onSubmit={this.handleSubmit}>
-      <input type="text" placeholder="Your name" ref="author" />
-      <input type="text" placeholder="Say something..." ref="text" />
-      <input type="submit" value="Post" />
-      </form>
-    );
-  }
-});
+
+
 
 React.render(
-  <CommentBox url="http://linkboxapp.herokuapp.com/iframe/bookmarks.json?api_key=" pollInterval={10000}/>,
-  document.getElementById('content')
+  <CommentBox url="http://linkboxapp.herokuapp.com/iframe/bookmarks.json" pollInterval={10000}/>,
+  document.getElementById('app-content')
 );
 
 $(document).on('click','a', function(e) {
@@ -158,8 +175,11 @@ $(document).on('click','a', function(e) {
 
  var ipc = require('ipc');
  ipc.on('ping', function(arg){
-   document.getElementById('search').focus()
-   window.scrollTo(0,0);
+   var e = document.getElementById('search');
+   if (e) {
+     e.focus()
+     window.scrollTo(0,0);
+   }
 });
 
  // var remote = require('remote');
