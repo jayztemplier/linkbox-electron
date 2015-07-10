@@ -3,6 +3,10 @@ body {
   background-color: #88C2E0;
 }
 
+input {
+  -webkit-app-region: no-drag;
+}
+
 .comment {
   background-color: rgb(240, 240, 240);
   border-bottom: 1px rgb(215, 215, 215) solid;
