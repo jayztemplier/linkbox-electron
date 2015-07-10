@@ -43,11 +43,17 @@ var CommentBox = React.createClass({
       }.bind(this)
     });
   },
+  handleLogout: function (e) {
+    localStorage.removeItem('apiKey');
+    this.setState({apiKey: null});
+    console.log("coucou");
+  },
   render: function() {
     if (this.state.apiKey) {
       return (
         <div className="commentBox">
         <CommentList data={this.state.data}/>
+        <a className="logout" onClick={this.handleLogout}>logout</a>
         </div>
       );
     } else {
@@ -169,9 +175,6 @@ React.render(
 
 $(document).on('click','a', function(e) {
      e.preventDefault(true);
-     var elem = $(this);
-     var url = elem.attr('href');
-     shell.openExternal(url);
  });
 
  var ipc = require('ipc');

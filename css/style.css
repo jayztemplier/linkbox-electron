@@ -3,8 +3,12 @@ body {
   background-color: #88C2E0;
 }
 
-input {
+input, a {
   -webkit-app-region: no-drag;
+}
+
+.logout {
+  text-align: center;
 }
 
 .comment {
